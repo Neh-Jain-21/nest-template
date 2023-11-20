@@ -1,20 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { DeepPartial, FindOneOptions, FindOptionsWhere, Repository, UpdateResult } from 'typeorm';
+// ENTITIES
+import { User } from './user.entity';
 // TYPES
-import { UserInterface } from './interfaces/user.interface';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
 export class UsersService {
-	private readonly users: UserInterface[] = [{ id: 1, name: 'Neh' }];
+	constructor(
+		@Inject('USER_REPOSITORY')
+		private userRepository: Repository<User>
+	) {}
 
-	findAll(name: string): UserInterface[] {
-		return name ? this.users.filter((user) => name.includes(JSON.stringify(user))) : this.users;
+	async findOne(
+		where: FindOptionsWhere<User> | FindOptionsWhere<User>[],
+		options: FindOneOptions<User>
+	): Promise<User> {
+		return await this.userRepository.findOne({ where, ...options });
 	}
 
-	findOneById(id: number): UserInterface {
-		return this.users.find((user) => user.id === id);
+	async create(user: DeepPartial<User>): Promise<User> {
+		return await this.userRepository.save(user, { reload: true });
 	}
 
-	create(user: Omit<UserInterface, 'id'>) {
-		this.users.push({ id: this.users.length + 1, ...user });
+	async update(
+		id: User['id'],
+		recordToUpdate: QueryDeepPartialEntity<User>
+	): Promise<UpdateResult> {
+		return await this.userRepository.update({ id: id }, recordToUpdate);
 	}
 }
