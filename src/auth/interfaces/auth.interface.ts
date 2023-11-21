@@ -1,11 +1,3 @@
-import { Request as ExpressRequest } from 'express';
-
-export interface IRegisterExpressRequest extends ExpressRequest {
-	file: {
-		originalname: string;
-	};
-}
-
 export interface IRegisterRequest {
 	fname: string;
 	lname: string;
@@ -19,4 +11,8 @@ export interface IRegisterRequest {
 export interface ILoginRequest {
 	email: string;
 	password: string;
+}
+
+export interface IForgotPasswordRequest {
+	email: string;
 }

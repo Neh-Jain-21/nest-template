@@ -1,13 +1,23 @@
-import { Controller, HttpStatus, Post, Body, HttpCode, Response, Request } from '@nestjs/common';
-import bcrypt from 'bcrypt';
+import {
+	Controller,
+	HttpStatus,
+	Post,
+	Body,
+	HttpCode,
+	Response,
+	UseInterceptors,
+	UploadedFile
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as bcrypt from 'bcrypt';
 // SERVICES
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 // TYPES
 import { Response as ExpressResponse } from 'express';
 import {
+	IForgotPasswordRequest,
 	ILoginRequest,
-	IRegisterExpressRequest,
 	IRegisterRequest
 } from './interfaces/auth.interface';
 
@@ -19,9 +29,11 @@ export class AuthController {
 	) {}
 
 	@Post('register')
+	@HttpCode(HttpStatus.CREATED)
+	@UseInterceptors(FileInterceptor('file'))
 	async register(
-		@Request() req: IRegisterExpressRequest,
 		@Response({ passthrough: true }) res: ExpressResponse,
+		@UploadedFile() file: Express.Multer.File,
 		@Body() body: IRegisterRequest
 	) {
 		let encPassword: string;
@@ -37,7 +49,7 @@ export class AuthController {
 			password: encPassword,
 			dob: body.dob,
 			gender: body.gender,
-			image: req.file.originalname
+			image: file.originalname
 		});
 
 		if (!register) {
@@ -76,5 +88,26 @@ export class AuthController {
 		await this.usersService.update(user.id, { token });
 
 		return { message: 'Success!', data: { token } };
+	}
+
+	@Post('forgot-password')
+	@HttpCode(HttpStatus.OK)
+	async forgotPassword(
+		@Response({ passthrough: true }) res: ExpressResponse,
+		@Body() body: IForgotPasswordRequest
+	) {
+		const user = await this.usersService.findOne(
+			{ email: body.email },
+			{ select: ['id', 'email'] }
+		);
+
+		if (!user) {
+			res.status(HttpStatus.NOT_FOUND);
+			return { message: 'User not found!', data: {} };
+		}
+
+		const random = Math.floor(Math.random() * 10000);
+
+		return { message: 'Success!', data: {} };
 	}
 }
