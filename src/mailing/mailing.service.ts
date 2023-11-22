@@ -10,9 +10,9 @@ export class MailingService {
 			this.mailerService
 				.sendMail({
 					from: `"OpenXcell" <${process.env.EMAIL}>`,
-					to: to,
-					subject: subject,
-					html: html
+					to,
+					subject,
+					html
 				})
 				.then(resolve)
 				.catch(reject);

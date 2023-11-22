@@ -5,9 +5,11 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn
 } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity({ name: 'Users' })
 export class User {
+	@ApiProperty({ example: 1, description: 'Id of user' })
 	@PrimaryGeneratedColumn()
 	id: number;
 

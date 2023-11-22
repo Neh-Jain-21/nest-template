@@ -1,12 +1,12 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 // MODULES
 import { UsersModule } from 'src/users/users.module';
+import { MailingModule } from 'src/mailing/mailing.module';
 // CONTROLLERS
 import { AuthController } from './auth.controller';
 
 @Module({
-	imports: [forwardRef(() => UsersModule), JwtModule.register({ global: true, secret: 'nest' })],
+	imports: [MailingModule, forwardRef(() => UsersModule)],
 	controllers: [AuthController]
 })
 export class AuthModule {}

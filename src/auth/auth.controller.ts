@@ -8,33 +8,34 @@ import {
 	UseInterceptors,
 	UploadedFile
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as bcrypt from 'bcrypt';
 // SERVICES
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
+import { MailingService } from 'src/mailing/mailing.service';
 // TYPES
 import { Response as ExpressResponse } from 'express';
-import {
-	IForgotPasswordRequest,
-	ILoginRequest,
-	IRegisterRequest
-} from './interfaces/auth.interface';
+import { ForgotPasswordDTO, LoginDTO, RegisterDTO } from './dto/auth.dto';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
 	constructor(
 		private usersService: UsersService,
+		private mailingService: MailingService,
 		private jwtService: JwtService
 	) {}
 
 	@Post('register')
+	@ApiOperation({ summary: 'Register User' })
 	@HttpCode(HttpStatus.CREATED)
 	@UseInterceptors(FileInterceptor('file'))
 	async register(
 		@Response({ passthrough: true }) res: ExpressResponse,
 		@UploadedFile() file: Express.Multer.File,
-		@Body() body: IRegisterRequest
+		@Body() body: RegisterDTO
 	) {
 		let encPassword: string;
 
@@ -62,10 +63,7 @@ export class AuthController {
 
 	@Post('login')
 	@HttpCode(HttpStatus.OK)
-	async login(
-		@Response({ passthrough: true }) res: ExpressResponse,
-		@Body() body: ILoginRequest
-	) {
+	async login(@Response({ passthrough: true }) res: ExpressResponse, @Body() body: LoginDTO) {
 		const user = await this.usersService.findOne(
 			{ email: body.email },
 			{ select: ['id', 'email', 'password'] }
@@ -94,7 +92,7 @@ export class AuthController {
 	@HttpCode(HttpStatus.OK)
 	async forgotPassword(
 		@Response({ passthrough: true }) res: ExpressResponse,
-		@Body() body: IForgotPasswordRequest
+		@Body() body: ForgotPasswordDTO
 	) {
 		const user = await this.usersService.findOne(
 			{ email: body.email },
@@ -107,6 +105,14 @@ export class AuthController {
 		}
 
 		const random = Math.floor(Math.random() * 10000);
+
+		await this.mailingService.sendMail(
+			body.email,
+			'Forgot Password OTP',
+			`Your OTP is ${random}`
+		);
+
+		await this.usersService.update(user.id, { otp: random.toString() });
 
 		return { message: 'Success!', data: {} };
 	}

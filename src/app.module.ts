@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { JwtModule } from '@nestjs/jwt';
 // MODULES
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -14,6 +15,7 @@ import { UsersController } from './users/users.controller';
 		AuthModule,
 		MailingModule,
 		UsersModule,
+		JwtModule.register({ global: true, secret: 'nest' }),
 		MailerModule.forRoot({
 			transport: {
 				port: 587,
