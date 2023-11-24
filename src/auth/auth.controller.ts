@@ -8,7 +8,7 @@ import {
 	UseInterceptors,
 	UploadedFile
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as bcrypt from 'bcrypt';
 // SERVICES
@@ -29,7 +29,23 @@ export class AuthController {
 	) {}
 
 	@Post('register')
+	@ApiConsumes('multipart/form-data')
 	@ApiOperation({ summary: 'Register User' })
+	@ApiBody({
+		schema: {
+			type: 'object',
+			properties: {
+				fname: { type: 'string' },
+				lname: { type: 'string' },
+				email: { type: 'string' },
+				phone: { type: 'string' },
+				password: { type: 'string' },
+				dob: { type: 'string' },
+				gender: { type: 'string' },
+				file: { type: 'string', format: 'binary' }
+			}
+		}
+	})
 	@HttpCode(HttpStatus.CREATED)
 	@UseInterceptors(FileInterceptor('file'))
 	async register(
