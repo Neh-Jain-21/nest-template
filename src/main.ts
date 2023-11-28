@@ -1,11 +1,14 @@
+import { join } from 'path';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 // MIDDLEWARES
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+// TYPES
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-	const app = await NestFactory.create(AppModule);
+	const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
 	const config = new DocumentBuilder()
 		.setTitle('Openxcell')
@@ -19,6 +22,10 @@ async function bootstrap() {
 	SwaggerModule.setup('api', app, document);
 
 	app.use(new LoggerMiddleware().use);
+
+	console.log(join(__dirname, '..', 'public'));
+
+	app.useStaticAssets(join(__dirname, '..', 'public'));
 
 	await app.listen(3000);
 

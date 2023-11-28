@@ -1,25 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDTO {
-	@ApiProperty()
 	fname: string;
-
-	@ApiProperty()
 	lname: string;
-
-	@ApiProperty()
 	email: string;
-
-	@ApiProperty()
 	phone: string;
-
-	@ApiProperty()
 	password: string;
-
-	@ApiProperty()
 	dob: string;
-
-	@ApiProperty()
 	gender: string;
 }
 
@@ -34,4 +21,20 @@ export class LoginDTO {
 export class ForgotPasswordDTO {
 	@ApiProperty()
 	email: string;
+}
+
+export class VerifyOtpDTO {
+	@ApiProperty()
+	email: string;
+
+	@ApiProperty()
+	otp: string;
+}
+
+export class ResetPasswordDTO {
+	@ApiProperty()
+	email: string;
+
+	@ApiProperty()
+	password: string;
 }

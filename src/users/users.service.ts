@@ -23,10 +23,17 @@ export class UsersService {
 		return await this.userRepository.save(user, { reload: true });
 	}
 
-	async update(
+	async updateById(
 		id: User['id'],
 		recordToUpdate: QueryDeepPartialEntity<User>
 	): Promise<UpdateResult> {
-		return await this.userRepository.update({ id: id }, recordToUpdate);
+		return await this.userRepository.update({ id }, recordToUpdate);
+	}
+
+	async updateByEmail(
+		email: User['email'],
+		recordToUpdate: QueryDeepPartialEntity<User>
+	): Promise<UpdateResult> {
+		return await this.userRepository.update({ email }, recordToUpdate);
 	}
 }

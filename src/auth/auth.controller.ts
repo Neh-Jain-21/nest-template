@@ -15,9 +15,17 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { MailingService } from 'src/mailing/mailing.service';
+// HELPERS
+import { SkipAuth } from 'src/helpers/utils';
 // TYPES
 import { Response as ExpressResponse } from 'express';
-import { ForgotPasswordDTO, LoginDTO, RegisterDTO } from './dto/auth.dto';
+import {
+	ForgotPasswordDTO,
+	LoginDTO,
+	RegisterDTO,
+	ResetPasswordDTO,
+	VerifyOtpDTO
+} from './dto/auth.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -28,6 +36,7 @@ export class AuthController {
 		private jwtService: JwtService
 	) {}
 
+	@SkipAuth()
 	@Post('register')
 	@ApiConsumes('multipart/form-data')
 	@ApiOperation({ summary: 'Register User' })
@@ -50,7 +59,7 @@ export class AuthController {
 	@UseInterceptors(FileInterceptor('file'))
 	async register(
 		@Response({ passthrough: true }) res: ExpressResponse,
-		@UploadedFile() file: Express.Multer.File,
+		@UploadedFile('file') file: Express.Multer.File,
 		@Body() body: RegisterDTO
 	) {
 		let encPassword: string;
@@ -66,7 +75,7 @@ export class AuthController {
 			password: encPassword,
 			dob: body.dob,
 			gender: body.gender,
-			image: file.originalname
+			image: file.filename
 		});
 
 		if (!register) {
@@ -77,7 +86,9 @@ export class AuthController {
 		return { message: 'Success', data: { id: register.id, email: register.email } };
 	}
 
+	@SkipAuth()
 	@Post('login')
+	@ApiOperation({ summary: 'Login User' })
 	@HttpCode(HttpStatus.OK)
 	async login(@Response({ passthrough: true }) res: ExpressResponse, @Body() body: LoginDTO) {
 		const user = await this.usersService.findOne(
@@ -99,13 +110,15 @@ export class AuthController {
 
 		const token = this.jwtService.sign({ id: user.id });
 
-		await this.usersService.update(user.id, { token });
+		await this.usersService.updateById(user.id, { token });
 
 		return { message: 'Success!', data: { token } };
 	}
 
+	@SkipAuth()
 	@Post('forgot-password')
 	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Forgot Password' })
 	async forgotPassword(
 		@Response({ passthrough: true }) res: ExpressResponse,
 		@Body() body: ForgotPasswordDTO
@@ -128,7 +141,47 @@ export class AuthController {
 			`Your OTP is ${random}`
 		);
 
-		await this.usersService.update(user.id, { otp: random.toString() });
+		await this.usersService.updateById(user.id, { otp: random.toString() });
+
+		return { message: 'Success!', data: {} };
+	}
+
+	@SkipAuth()
+	@Post('verify-otp')
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Verify OTP' })
+	async verifyOtp(
+		@Response({ passthrough: true }) res: ExpressResponse,
+		@Body() body: VerifyOtpDTO
+	) {
+		const otpVerified = await this.usersService.findOne(
+			{ email: body.email, otp: body.otp },
+			{ select: ['id', 'email'] }
+		);
+
+		if (!otpVerified) {
+			res.status(HttpStatus.NOT_ACCEPTABLE);
+			return { message: 'Incorrect OTP', data: {} };
+		}
+
+		await this.usersService.updateById(otpVerified.id, { otp: '' });
+
+		return { message: 'OTP Verified', data: {} };
+	}
+
+	@SkipAuth()
+	@Post('reset-password')
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Reset Password' })
+	async resetPassword(
+		@Response({ passthrough: true }) res: ExpressResponse,
+		@Body() body: ResetPasswordDTO
+	) {
+		let encPassword: string;
+
+		if (body.password) encPassword = await bcrypt.hash(body.password, 8);
+
+		await this.usersService.updateByEmail(body.email, { password: encPassword });
 
 		return { message: 'Success!', data: {} };
 	}
