@@ -3,8 +3,11 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { JwtModule } from '@nestjs/jwt';
 // MODULES
 import { AuthModule } from './auth/auth.module';
+import { PostModule } from './post/post.module';
 import { UsersModule } from './users/users.module';
 import { MailingModule } from './mailing/mailing.module';
+import { PostLikesModule } from './postLikes/postLikes.module';
+import { PostMediaModule } from './postMedia/postMedia.module';
 // MIDDLEWARES
 import { AuthenticationMiddleware } from './common/middleware/authentication.middleware';
 // CONTROLLERS
@@ -16,8 +19,11 @@ import { AuthGuard } from './common/guards/auth.guard';
 @Module({
 	imports: [
 		AuthModule,
-		MailingModule,
 		UsersModule,
+		PostModule,
+		PostLikesModule,
+		PostMediaModule,
+		MailingModule,
 		JwtModule.register({ global: true, secret: 'nest' }),
 		MailerModule.forRoot({
 			transport: {

@@ -1,8 +1,10 @@
 import { DataSource } from 'typeorm';
+// HELPERS
+import { REPOSITORIES } from 'src/helpers/constants';
 
 export const databaseProviders = [
 	{
-		provide: 'DATA_SOURCE',
+		provide: REPOSITORIES.DATA_SOURCE,
 		useFactory: async () => {
 			const dataSource = new DataSource({
 				type: 'mysql',

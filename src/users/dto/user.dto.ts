@@ -6,3 +6,8 @@ export class UpdateUserDetailsDTO {
 	dob: string;
 	gender: string;
 }
+
+export class ChangePasswordDTO {
+	oldPassword: string;
+	newPassword: string;
+}

@@ -3,9 +3,11 @@ import {
 	Column,
 	PrimaryGeneratedColumn,
 	CreateDateColumn,
-	UpdateDateColumn
+	UpdateDateColumn,
+	OneToMany
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Post } from 'src/post/post.entity';
 
 @Entity({ name: 'Users' })
 export class User {
@@ -52,4 +54,7 @@ export class User {
 		onUpdate: 'CURRENT_TIMESTAMP(6)'
 	})
 	updated_at: Date;
+
+	@OneToMany(() => Post, (post) => post.user)
+	post: Post[];
 }

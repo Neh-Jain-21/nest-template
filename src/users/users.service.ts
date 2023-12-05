@@ -2,13 +2,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DeepPartial, FindOneOptions, FindOptionsWhere, Repository, UpdateResult } from 'typeorm';
 // ENTITIES
 import { User } from './user.entity';
+// HELPERS
+import { REPOSITORIES } from 'src/helpers/constants';
 // TYPES
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
 export class UsersService {
 	constructor(
-		@Inject('USER_REPOSITORY')
+		@Inject(REPOSITORIES.USER_REPO)
 		private userRepository: Repository<User>
 	) {}
 
