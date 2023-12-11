@@ -4,11 +4,12 @@ import {
 	PrimaryGeneratedColumn,
 	CreateDateColumn,
 	UpdateDateColumn,
-	OneToOne
+	OneToOne,
+	JoinColumn
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 // ENTITIES
-import { Post } from 'src/post/post.entity';
+import { Posts } from 'src/post/posts.entity';
 
 @Entity({ name: 'PostMedia' })
 export class PostMedia {
@@ -16,10 +17,10 @@ export class PostMedia {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@Column({ type: 'number', nullable: false })
+	@Column({ type: 'int', nullable: false })
 	post_id: number;
 
-	@Column({ type: 'string', nullable: false })
+	@Column({ type: 'varchar', length: 255, nullable: false })
 	media: string;
 
 	@Column({ type: 'enum', enum: ['image', 'video'], nullable: false })
@@ -35,6 +36,7 @@ export class PostMedia {
 	})
 	updated_at: Date;
 
-	@OneToOne(() => Post, (post) => post.postMedias)
-	post: Post;
+	@OneToOne(() => Posts, (post) => post.postMedias, { onDelete: 'CASCADE' })
+	@JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
+	post: Posts;
 }

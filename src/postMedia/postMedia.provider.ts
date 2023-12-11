@@ -6,7 +6,7 @@ import { REPOSITORIES } from 'src/helpers/constants';
 
 export const postMediaProviders = [
 	{
-		provide: REPOSITORIES.POST_REPO,
+		provide: REPOSITORIES.POST_MEDIA_REPO,
 		useFactory: (dataSource: DataSource) => dataSource.getRepository(PostMedia),
 		inject: [REPOSITORIES.DATA_SOURCE]
 	}

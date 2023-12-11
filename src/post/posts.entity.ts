@@ -5,7 +5,8 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	OneToMany,
-	OneToOne
+	OneToOne,
+	JoinColumn
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 // ENTITIES
@@ -13,13 +14,13 @@ import { PostLikes } from 'src/postLikes/postLikes.entity';
 import { PostMedia } from 'src/postMedia/postMedia.entity';
 import { User } from 'src/users/user.entity';
 
-@Entity({ name: 'Post' })
-export class Post {
+@Entity({ name: 'Posts' })
+export class Posts {
 	@ApiProperty({ example: 1, description: 'Id of user' })
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@Column({ type: 'number', nullable: false })
+	@Column({ type: 'int', nullable: false })
 	user_id: number;
 
 	@Column({ type: 'text', nullable: false })
@@ -36,6 +37,7 @@ export class Post {
 	updated_at: Date;
 
 	@OneToOne(() => User, (user) => user.post)
+	@JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
 	user: User;
 
 	@OneToMany(() => PostMedia, (postMedias) => postMedias.post)

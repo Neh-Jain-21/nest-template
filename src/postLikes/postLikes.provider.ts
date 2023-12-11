@@ -6,7 +6,7 @@ import { REPOSITORIES } from 'src/helpers/constants';
 
 export const postLikesProviders = [
 	{
-		provide: REPOSITORIES.POST_REPO,
+		provide: REPOSITORIES.POST_LIKES_REPO,
 		useFactory: (dataSource: DataSource) => dataSource.getRepository(PostLikes),
 		inject: [REPOSITORIES.DATA_SOURCE]
 	}

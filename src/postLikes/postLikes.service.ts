@@ -23,7 +23,7 @@ export class PostLikesService {
 
 	async findOne(
 		where: FindOptionsWhere<PostLikes> | FindOptionsWhere<PostLikes>[],
-		options: FindOneOptions<PostLikes>
+		options?: FindOneOptions<PostLikes>
 	): Promise<PostLikes> {
 		return await this.postLikesRepository.findOne({ where, ...options });
 	}
@@ -41,5 +41,9 @@ export class PostLikesService {
 		recordToUpdate: QueryDeepPartialEntity<PostLikes>
 	): Promise<UpdateResult> {
 		return await this.postLikesRepository.update({ id }, recordToUpdate);
+	}
+
+	async destroy(where: FindOptionsWhere<PostLikes>) {
+		return await this.postLikesRepository.delete(where);
 	}
 }

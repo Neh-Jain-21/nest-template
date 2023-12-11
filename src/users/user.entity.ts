@@ -7,7 +7,7 @@ import {
 	OneToMany
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { Post } from 'src/post/post.entity';
+import { Posts } from 'src/post/posts.entity';
 
 @Entity({ name: 'Users' })
 export class User {
@@ -55,6 +55,6 @@ export class User {
 	})
 	updated_at: Date;
 
-	@OneToMany(() => Post, (post) => post.user)
-	post: Post[];
+	@OneToMany(() => Posts, (post) => post.user)
+	post: Posts[];
 }

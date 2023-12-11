@@ -11,36 +11,22 @@ import {
 	Param,
 	Get
 } from '@nestjs/common';
-import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import * as bcrypt from 'bcrypt';
 // SERVICES
-import { JwtService } from '@nestjs/jwt';
-import { PostService } from './post.service';
-import { MailingService } from 'src/mailing/mailing.service';
-import { PostMediaService } from 'src/postMedia/postMedia.service';
+import { PostsService } from './posts.service';
 import { PostLikesService } from 'src/postLikes/postLikes.service';
-// HELPERS
 // TYPES
 import { Response as ExpressResponse } from 'express';
-import {
-	ForgotPasswordDTO,
-	LoginDTO,
-	CreatePostDTO,
-	ResetPasswordDTO,
-	VerifyOtpDTO
-} from './dto/post.dto';
+import { CreatePostDTO, LikePostDTO } from './dto/post.dto';
 import { UserExpressRequest } from 'src/app';
 
-@ApiTags('Post')
+@ApiTags('Posts')
 @Controller('post')
-export class PostController {
+export class PostsController {
 	constructor(
-		private postService: PostService,
-		private postMediaService: PostMediaService,
-		private postLikesService: PostLikesService,
-		private mailingService: MailingService,
-		private jwtService: JwtService
+		private postsService: PostsService,
+		private postLikesService: PostLikesService
 	) {}
 
 	@Post()
@@ -51,10 +37,14 @@ export class PostController {
 			type: 'object',
 			properties: {
 				description: { type: 'string' },
-				file: { type: 'string', format: 'binary' }
+				media: {
+					type: 'array',
+					items: { type: 'string', format: 'binary' }
+				}
 			}
 		}
 	})
+	@ApiBearerAuth('access-token')
 	@HttpCode(HttpStatus.CREATED)
 	@UseInterceptors(FilesInterceptor('media'))
 	async createPost(
@@ -63,9 +53,15 @@ export class PostController {
 		@UploadedFiles() files: Express.Multer.File[],
 		@Body() body: CreatePostDTO
 	) {
-		const post = await this.postService.create({
+		const medias = files.map((file) => ({
+			media: file.filename,
+			type: file.mimetype.includes('image') ? 'image' : 'video'
+		}));
+
+		const post = await this.postsService.create({
 			user_id: req.user.id,
-			description: body.description
+			description: body.description,
+			postMedias: medias
 		});
 
 		if (!post) {
@@ -73,52 +69,48 @@ export class PostController {
 			return { message: 'Something Went Wrong!', data: {} };
 		}
 
-		const medias = files.map((file) => ({
-			post_id: post.id,
-			media: file.filename,
-			type: file.mimetype.includes('image') ? 'image' : 'video'
-		}));
+		// const postCreated = this.postMediaService.bulkCreate(medias);
 
-		const postCreated = this.postMediaService.bulkCreate(medias);
+		// if (!postCreated) return { message: 'Something Went Wrong!', data: {} };
 
-		if (!postCreated) return { message: 'Something Went Wrong!', data: {} };
-
-		return { message: 'Success', data: postCreated };
+		return { message: 'Success', data: post };
 	}
 
 	@Get()
+	@ApiBearerAuth('access-token')
 	@ApiOperation({ summary: 'Get Post' })
 	@HttpCode(HttpStatus.OK)
 	async getPost(
 		@Request() req: UserExpressRequest,
 		@Response({ passthrough: true }) res: ExpressResponse
 	) {
-		const posts = await this.postService.findAll({
+		const posts = await this.postsService.findAll({
 			select: ['id', 'created_at', 'description'],
 			relations: {
-				user: { first_name: true as never, last_name: true as never, image: true as never },
-				postMedias: { type: true as never, media: true as never }
+				user: true /* { first_name: true as never, last_name: true as never, image: true as never } */,
+				postMedias: true /* { type: true as never, media: true as never } */
 			}
 		});
 
 		if (!posts) {
 			res.status(HttpStatus.NOT_FOUND);
-			return { message: 'User not found!', data: {} };
+			return { message: 'Something went wrong!', data: {} };
 		}
 
 		posts.forEach((post) => {
-			post.user.image = `http://${req.hostname}:3000/upload/${post.User.image}`;
+			post.user.image = `http://${req.hostname}:3000/upload/${post.user.image}`;
 			post.postMedias.forEach((media) => {
 				media.media = `http://${req.hostname}:3000/upload/${media.media}`;
 			});
 		});
 
-		return { message: 'Success!', data: {} };
+		return { message: 'Success!', data: posts };
 	}
 
 	@Get('likes')
+	@ApiBearerAuth('access-token')
 	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Forgot Password' })
+	@ApiOperation({ summary: 'Get Likes' })
 	async getLikes(
 		@Request() req: UserExpressRequest,
 		@Response({ passthrough: true }) res: ExpressResponse,
@@ -144,25 +136,44 @@ export class PostController {
 		return { message: 'Success!', data: postLikes };
 	}
 
-	@Post('verify-otp')
+	@Post('likes')
+	@ApiBearerAuth('access-token')
 	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Verify OTP' })
+	@ApiOperation({ summary: 'Like Or Unlike Post' })
 	async likePost(
+		@Request() req: UserExpressRequest,
 		@Response({ passthrough: true }) res: ExpressResponse,
-		@Body() body: VerifyOtpDTO
+		@Body() body: LikePostDTO
 	) {
-		const otpVerified = await this.usersService.findOne(
-			{ email: body.email, otp: body.otp },
-			{ select: ['id', 'email'] }
-		);
+		const postAlreadyLiked = await this.postLikesService.findOne({
+			post_id: body.id,
+			user_id: req.user.id
+		});
 
-		if (!otpVerified) {
-			res.status(HttpStatus.NOT_ACCEPTABLE);
-			return { message: 'Incorrect OTP', data: {} };
+		if (!postAlreadyLiked) {
+			const postLiked = await this.postLikesService.create({
+				post_id: body.id,
+				user_id: req.user.id
+			});
+
+			if (!postLiked) {
+				res.status(HttpStatus.NOT_FOUND);
+				return { message: 'Something Went Wrong', data: {} };
+			}
+
+			return { message: 'Post Liked!', data: {} };
 		}
 
-		await this.usersService.updateById(otpVerified.id, { otp: '' });
+		const postUnLiked = await this.postLikesService.destroy({
+			post_id: body.id,
+			user_id: req.user.id
+		});
 
-		return { message: 'OTP Verified', data: {} };
+		if (!postUnLiked) {
+			res.status(HttpStatus.NOT_FOUND);
+			return { message: 'Something Went Wrong', data: {} };
+		}
+
+		return { message: 'Post Un Liked!', data: {} };
 	}
 }

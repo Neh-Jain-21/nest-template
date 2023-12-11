@@ -5,19 +5,21 @@ import { MulterModule } from '@nestjs/platform-express';
 // HELPERS
 import { editFileName } from 'src/helpers/utils';
 // MODULES
-import { UsersModule } from 'src/users/users.module';
-import { MailingModule } from 'src/mailing/mailing.module';
 import { DatabaseModule } from 'src/database/database.module';
+import { PostLikesModule } from 'src/postLikes/postLikes.module';
+import { PostMediaModule } from 'src/postMedia/postMedia.module';
+// CONTROLLERS
+import { PostsController } from './posts.controller';
 // PROVIDERS
-import { postLikesProviders } from './postLikes.provider';
+import { postsProviders } from './posts.provider';
 // SERVICES
-import { PostLikesService } from './postLikes.service';
+import { PostsService } from './posts.service';
 
 @Module({
 	imports: [
 		DatabaseModule,
-		MailingModule,
-		forwardRef(() => UsersModule),
+		forwardRef(() => PostLikesModule),
+		forwardRef(() => PostMediaModule),
 		MulterModule.register({
 			storage: diskStorage({
 				filename: editFileName,
@@ -25,7 +27,7 @@ import { PostLikesService } from './postLikes.service';
 			})
 		})
 	],
-	providers: [...postLikesProviders, PostLikesService],
-	exports: [PostLikesService]
+	controllers: [PostsController],
+	providers: [...postsProviders, PostsService]
 })
-export class PostLikesModule {}
+export class PostsModule {}

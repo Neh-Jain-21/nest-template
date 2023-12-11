@@ -37,7 +37,7 @@ async function bootstrap() {
 	app.use(new LoggerMiddleware().use);
 
 	app.use(function (request: Request, response: Response, next: NextFunction) {
-		response.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+		response.setHeader('Access-Control-Allow-Origin', '*');
 		next();
 	});
 

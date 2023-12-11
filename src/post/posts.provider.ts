@@ -1,13 +1,13 @@
 import { DataSource } from 'typeorm';
 // ENTITIES
-import { Post } from './post.entity';
+import { Posts } from './posts.entity';
 // HELPERS
 import { REPOSITORIES } from 'src/helpers/constants';
 
-export const postProviders = [
+export const postsProviders = [
 	{
 		provide: REPOSITORIES.POST_REPO,
-		useFactory: (dataSource: DataSource) => dataSource.getRepository(Post),
+		useFactory: (dataSource: DataSource) => dataSource.getRepository(Posts),
 		inject: [REPOSITORIES.DATA_SOURCE]
 	}
 ];

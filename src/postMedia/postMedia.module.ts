@@ -7,6 +7,7 @@ import { editFileName } from 'src/helpers/utils';
 // MODULES
 import { UsersModule } from 'src/users/users.module';
 import { MailingModule } from 'src/mailing/mailing.module';
+import { DatabaseModule } from 'src/database/database.module';
 // PROVIDERS
 import { postMediaProviders } from './postMedia.provider';
 // SERVICES
@@ -14,6 +15,7 @@ import { PostMediaService } from './postMedia.service';
 
 @Module({
 	imports: [
+		DatabaseModule,
 		MailingModule,
 		forwardRef(() => UsersModule),
 		MulterModule.register({
@@ -23,6 +25,7 @@ import { PostMediaService } from './postMedia.service';
 			})
 		})
 	],
-	providers: [...postMediaProviders, PostMediaService]
+	providers: [...postMediaProviders, PostMediaService],
+	exports: [PostMediaService]
 })
 export class PostMediaModule {}

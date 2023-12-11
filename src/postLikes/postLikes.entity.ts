@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 // ENTITIES
-import { Post } from 'src/post/post.entity';
+import { Posts } from 'src/post/posts.entity';
 import { User } from 'src/users/user.entity';
 
 @Entity({ name: 'PostLikes' })
@@ -17,10 +17,10 @@ export class PostLikes {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@Column({ type: 'number', nullable: false })
+	@Column({ type: 'int', nullable: false })
 	user_id: number;
 
-	@Column({ type: 'number', nullable: false })
+	@Column({ type: 'int', nullable: false })
 	post_id: number;
 
 	@CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
@@ -33,8 +33,8 @@ export class PostLikes {
 	})
 	updated_at: Date;
 
-	@OneToOne(() => Post, (post) => post.postLikes)
-	post: Post;
+	@OneToOne(() => Posts, (post) => post.postLikes)
+	post: Posts;
 
 	@OneToOne(() => User, (user) => user.post)
 	user: User;

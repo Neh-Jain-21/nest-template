@@ -45,6 +45,7 @@ export class UsersController {
 
 	@Get()
 	@HttpCode(HttpStatus.OK)
+	@ApiBearerAuth('access-token')
 	async getUserDetails(@Request() req: UserExpressRequest, @Response() res: ExpressResponse) {
 		const user = await this.usersService.findOne(
 			{ id: req.user.id },
@@ -63,6 +64,7 @@ export class UsersController {
 	}
 
 	@Post()
+	@ApiBearerAuth('access-token')
 	async updateUserDetails(
 		@Request() req: UserExpressRequest,
 		@Response() res: ExpressResponse,
@@ -90,6 +92,7 @@ export class UsersController {
 	}
 
 	@Post('change-password')
+	@ApiBearerAuth('access-token')
 	async changePassword(
 		@Request() req: UserExpressRequest,
 		@Response() res: ExpressResponse,

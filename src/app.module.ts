@@ -3,7 +3,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { JwtModule } from '@nestjs/jwt';
 // MODULES
 import { AuthModule } from './auth/auth.module';
-import { PostModule } from './post/post.module';
+import { PostsModule } from './post/posts.module';
 import { UsersModule } from './users/users.module';
 import { MailingModule } from './mailing/mailing.module';
 import { PostLikesModule } from './postLikes/postLikes.module';
@@ -20,7 +20,7 @@ import { AuthGuard } from './common/guards/auth.guard';
 	imports: [
 		AuthModule,
 		UsersModule,
-		PostModule,
+		PostsModule,
 		PostLikesModule,
 		PostMediaModule,
 		MailingModule,
